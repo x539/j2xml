@@ -18,6 +18,7 @@
 namespace eshiol\J2xml\Table;
 defined('JPATH_PLATFORM') or die();
 
+use Joomla\CMS\Factory;
 use eshiol\J2xml\Table\Contact;
 use eshiol\J2xml\Table\Field;
 use eshiol\J2xml\Table\Table;
@@ -213,7 +214,12 @@ class User extends Table
 			->loadResult();
 
 		$version = new \JVersion();
-		if ($version->isCompatible('4'))
+
+		if ($version->isCompatible('5'))
+		{
+			$mvcFactory = Factory::getApplication()->bootComponent('com_user')->getMVCFactory();
+		}
+		elseif ($version->isCompatible('4'))
 		{
 			$userModel = "\Joomla\Component\Users\Administrator\Model\UserModel";
 		}
@@ -275,7 +281,12 @@ class User extends Table
 
 			if (!$data['id'] || ($import_users == 2))
 			{
-				$user = new $userModel();
+				if ($version->isCompatible('5'))
+				{
+					$user = $mvcFactory->createModel('User', 'Administrator', ['ignore_request' => true]);
+				} else {
+					$user = new $userModel();
+				}
 				$result = $user->save($data);
 
 				$id = $db->setQuery(
